@@ -20,10 +20,10 @@ function ProgressBar({ pct, danger }: { pct: number; danger?: boolean }) {
 }
 
 function IncomeGoalSection({ ig }: { ig: DashboardData["incomeGoal"] }) {
-  const pct = Math.min(100, ig.pct);
-  const over = ig.actual > ig.target;
+  const overPaid = ig.actual > ig.target;
+  const overAll  = ig.actualWithUnpaid > ig.target;
   return (
-    <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-3">
+    <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm">
           יעד הכנסה החודש
@@ -36,19 +36,28 @@ function IncomeGoalSection({ ig }: { ig: DashboardData["incomeGoal"] }) {
         )}
       </div>
 
-      <ProgressBar pct={pct} />
+      {/* Bar 1 — paid only */}
+      <div className="space-y-1.5">
+        <div className="flex justify-between text-xs">
+          <span className="text-zinc-500">שולם בפועל</span>
+          <span className={overPaid ? "text-white" : "text-zinc-400"}>
+            {fmt(ig.actual)} / {fmt(ig.target)}
+            {overPaid && ` ✓ +${fmt(ig.actual - ig.target)}`}
+          </span>
+        </div>
+        <ProgressBar pct={Math.min(100, ig.pct)} />
+      </div>
 
-      <div className="flex justify-between text-xs">
-        <span className={over ? "text-white" : "text-zinc-400"}>
-          {fmt(ig.actual)} / {fmt(ig.target)}
-        </span>
-        <span className={over ? "text-white" : "text-zinc-500"}>
-          {over
-            ? `✓ עברת ב-${fmt(ig.actual - ig.target)}`
-            : ig.isUpcoming
-            ? "טרם התחיל"
-            : `נותר ${fmt(ig.target - ig.actual)}`}
-        </span>
+      {/* Bar 2 — paid + unpaid */}
+      <div className="space-y-1.5">
+        <div className="flex justify-between text-xs">
+          <span className="text-zinc-500">כולל סגירות פתוחות</span>
+          <span className={overAll ? "text-white" : "text-zinc-400"}>
+            {fmt(ig.actualWithUnpaid)} / {fmt(ig.target)}
+            {overAll && ` ✓ +${fmt(ig.actualWithUnpaid - ig.target)}`}
+          </span>
+        </div>
+        <ProgressBar pct={Math.min(100, ig.pctWithUnpaid)} />
       </div>
 
       {ig.carryover !== 0 && (

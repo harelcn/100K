@@ -32,6 +32,7 @@ interface ClosingRow {
 interface ClosingDateRow {
   amount: number;
   date: string;
+  isPaid: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -88,6 +89,7 @@ async function fetchAllClosingsFromDate(startDate: string): Promise<ClosingDateR
   return rows.map((r) => ({
     amount: r.properties["סכום שנסגר"]?.number ?? 0,
     date: r.properties["תאריך סגירה"]?.date?.start ?? "",
+    isPaid: r.properties["תשלום"]?.status?.name === "שולם",
   }));
 }
 
@@ -132,12 +134,14 @@ function toISODate(d: Date) {
 
 interface IncomeGoal {
   target: number;
-  actual: number;
+  actual: number;          // paid closings only
+  actualWithUnpaid: number; // paid + unpaid closings
   pct: number;
-  carryover: number;       // positive = deficit carried forward, negative = surplus
+  pctWithUnpaid: number;
+  carryover: number;
   nextMonthTarget: number;
   monthLabel: string;
-  isUpcoming: boolean;     // true when we're before the goal period
+  isUpcoming: boolean;
 }
 
 function calcIncomeGoal(allClosings: ClosingDateRow[], currentMonthStart: Date): IncomeGoal {
@@ -172,19 +176,25 @@ function calcIncomeGoal(allClosings: ClosingDateRow[], currentMonthStart: Date):
   // When upcoming: count closings from DASHBOARD_START (May 23) through end of June
   const displayMonthEnd = new Date(displayMonth.getFullYear(), displayMonth.getMonth() + 1, 0);
   const goalStartDate = new Date(DASHBOARD_START);
-  const actual = allClosings
-    .filter((c) => {
-      if (!c.date) return false;
-      const d = new Date(c.date);
-      const from = isUpcoming ? goalStartDate : displayMonth;
-      return d >= from && d <= displayMonthEnd;
-    })
+
+  const displayClosings = allClosings.filter((c) => {
+    if (!c.date) return false;
+    const d = new Date(c.date);
+    const from = isUpcoming ? goalStartDate : displayMonth;
+    return d >= from && d <= displayMonthEnd;
+  });
+
+  const actual = displayClosings
+    .filter((c) => c.isPaid)
     .reduce((s, c) => s + c.amount, 0);
 
-  const pct = target > 0 ? (actual / target) * 100 : 0;
+  const actualWithUnpaid = displayClosings.reduce((s, c) => s + c.amount, 0);
 
-  // What carryover would be after this month
-  const afterThisMonth = target - actual;
+  const pct = target > 0 ? (actual / target) * 100 : 0;
+  const pctWithUnpaid = target > 0 ? (actualWithUnpaid / target) * 100 : 0;
+
+  // Carryover based on total (paid + unpaid) for month walk
+  const afterThisMonth = target - actualWithUnpaid;
   const nextMonthTarget = MONTHLY_INCOME_TARGET + afterThisMonth;
 
   const monthLabel = displayMonth.toLocaleDateString("he-IL", {
@@ -192,7 +202,7 @@ function calcIncomeGoal(allClosings: ClosingDateRow[], currentMonthStart: Date):
     year: "numeric",
   });
 
-  return { target, actual, pct, carryover, nextMonthTarget, monthLabel, isUpcoming };
+  return { target, actual, actualWithUnpaid, pct, pctWithUnpaid, carryover, nextMonthTarget, monthLabel, isUpcoming };
 }
 
 export interface DashboardData {
