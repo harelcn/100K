@@ -172,15 +172,12 @@ function calcIncomeGoal(allClosings: ClosingDateRow[], currentMonthStart: Date):
   const target = MONTHLY_INCOME_TARGET + carryover;
 
   // Current (or upcoming) month's closings
-  // When upcoming: count closings from DASHBOARD_START (May 23) through end of June
   const displayMonthEnd = new Date(displayMonth.getFullYear(), displayMonth.getMonth() + 1, 0);
-  const goalStartDate = new Date(DASHBOARD_START);
 
   const displayClosings = allClosings.filter((c) => {
     if (!c.date) return false;
     const d = new Date(c.date);
-    const from = isUpcoming ? goalStartDate : displayMonth;
-    return d >= from && d <= displayMonthEnd;
+    return d >= displayMonth && d <= displayMonthEnd;
   });
 
   const actual = displayClosings.reduce((s, c) => s + c.amount, 0);
