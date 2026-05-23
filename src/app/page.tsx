@@ -1,5 +1,6 @@
 import { getDashboardData, type DashboardData } from "@/lib/notion";
 import { TARGET_AMOUNT, TARGET_DATE } from "@/lib/config";
+import { AutoRefresh } from "./auto-refresh";
 
 export const dynamic = "force-dynamic";
 
@@ -73,6 +74,7 @@ export default async function Dashboard() {
 
   return (
     <main className="max-w-xl mx-auto px-5 py-8 space-y-8">
+      <AutoRefresh intervalMs={60_000} />
 
       {/* ───── Header ───── */}
       <header className="flex items-center justify-between border-b border-zinc-800 pb-4">
