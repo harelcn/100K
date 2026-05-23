@@ -32,7 +32,6 @@ interface ClosingRow {
 interface ClosingDateRow {
   amount: number;
   date: string;
-  isPaid: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -184,14 +183,12 @@ function calcIncomeGoal(allClosings: ClosingDateRow[], currentMonthStart: Date):
     return d >= from && d <= displayMonthEnd;
   });
 
-  const actual = displayClosings
-    .filter((c) => c.isPaid)
-    .reduce((s, c) => s + c.amount, 0);
+  const actual = displayClosings.reduce((s, c) => s + c.amount, 0);
 
-  const actualWithUnpaid = displayClosings.reduce((s, c) => s + c.amount, 0);
+  const actualWithUnpaid = actual;
 
   const pct = target > 0 ? (actual / target) * 100 : 0;
-  const pctWithUnpaid = target > 0 ? (actualWithUnpaid / target) * 100 : 0;
+  const pctWithUnpaid = pct;
 
   // Carryover based on total (paid + unpaid) for month walk
   const afterThisMonth = target - actualWithUnpaid;

@@ -36,28 +36,14 @@ function IncomeGoalSection({ ig }: { ig: DashboardData["incomeGoal"] }) {
         )}
       </div>
 
-      {/* Bar 1 — paid only */}
       <div className="space-y-1.5">
-        <div className="flex justify-between text-xs">
-          <span className="text-zinc-500">שולם בפועל</span>
+        <div className="flex justify-end text-xs">
           <span className={overPaid ? "text-white" : "text-zinc-400"}>
             {fmt(ig.actual)} / {fmt(ig.target)}
             {overPaid && ` ✓ +${fmt(ig.actual - ig.target)}`}
           </span>
         </div>
         <ProgressBar pct={Math.min(100, ig.pct)} />
-      </div>
-
-      {/* Bar 2 — paid + unpaid */}
-      <div className="space-y-1.5">
-        <div className="flex justify-between text-xs">
-          <span className="text-zinc-500">כולל סגירות פתוחות</span>
-          <span className={overAll ? "text-white" : "text-zinc-400"}>
-            {fmt(ig.actualWithUnpaid)} / {fmt(ig.target)}
-            {overAll && ` ✓ +${fmt(ig.actualWithUnpaid - ig.target)}`}
-          </span>
-        </div>
-        <ProgressBar pct={Math.min(100, ig.pctWithUnpaid)} />
       </div>
 
       {ig.carryover !== 0 && (
@@ -83,6 +69,7 @@ export default async function Dashboard() {
     d.currentMonthBudget > 0
       ? (d.currentMonthTotalSpent / d.currentMonthBudget) * 100
       : 0;
+  const withClosingsPct = Math.min(100, (d.withClosings / TARGET_AMOUNT) * 100);
 
   return (
     <main className="max-w-xl mx-auto px-5 py-8 space-y-8">
@@ -137,11 +124,17 @@ export default async function Dashboard() {
           <p className="text-sm">יעד {fmt(TARGET_AMOUNT)}</p>
           <p className="text-xs text-zinc-500">עד {TARGET_DATE}</p>
         </div>
+        <div className="flex justify-between text-xs">
+          <span className="text-zinc-500">כרגע בחשבון</span>
+          <span className="text-zinc-400">{fmt(d.currentAccount)} / {fmt(TARGET_AMOUNT)} ({d.goalPct.toFixed(1)}%)</span>
+        </div>
         <ProgressBar pct={d.goalPct} />
-        <div className="flex justify-between text-xs text-zinc-500">
-          <span>{fmt(d.currentAccount)} כבר</span>
-          <span className="text-white">{d.goalPct.toFixed(1)}%</span>
-          <span>נותר {fmt(d.remainingToGoal)}</span>
+        <div className="space-y-1.5 pt-1 border-t border-zinc-800">
+          <div className="flex justify-between text-xs">
+            <span className="text-zinc-500">כולל סגירות</span>
+            <span className="text-zinc-400">{fmt(d.withClosings)} / {fmt(TARGET_AMOUNT)} ({withClosingsPct.toFixed(1)}%)</span>
+          </div>
+          <ProgressBar pct={withClosingsPct} />
         </div>
       </section>
 
