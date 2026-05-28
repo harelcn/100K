@@ -126,17 +126,21 @@ export default async function Dashboard() {
           <p className="text-sm">יעד {fmt(TARGET_AMOUNT)}</p>
           <p className="text-xs text-zinc-500">עד {TARGET_DATE}</p>
         </div>
-        <div className="flex justify-between text-xs">
-          <span className="text-zinc-500">כרגע בחשבון</span>
-          <span className="text-zinc-400">{fmt(d.currentAccount)} / {fmt(TARGET_AMOUNT)} ({d.goalPct.toFixed(1)}%)</span>
-        </div>
-        <ProgressBar pct={d.goalPct} />
-        <div className="space-y-1.5 pt-1 border-t border-zinc-800">
-          <div className="flex justify-between text-xs">
-            <span className="text-zinc-500">כולל סגירות</span>
-            <span className="text-zinc-400">{fmt(d.withClosings)} / {fmt(TARGET_AMOUNT)} ({withClosingsPct.toFixed(1)}%)</span>
+        <div className="space-y-1.5">
+          <span className="text-xs text-zinc-500">כרגע בחשבון</span>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-zinc-400 shrink-0">{fmt(d.currentAccount)}</span>
+            <div className="flex-1"><ProgressBar pct={d.goalPct} /></div>
+            <span className="text-zinc-400 shrink-0">{fmt(TARGET_AMOUNT - d.currentAccount)}</span>
           </div>
-          <ProgressBar pct={withClosingsPct} />
+        </div>
+        <div className="space-y-1.5 pt-1 border-t border-zinc-800">
+          <span className="text-xs text-zinc-500">כולל סגירות</span>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-zinc-400 shrink-0">{fmt(d.withClosings)}</span>
+            <div className="flex-1"><ProgressBar pct={withClosingsPct} /></div>
+            <span className="text-zinc-400 shrink-0">{fmt(TARGET_AMOUNT - d.withClosings)}</span>
+          </div>
         </div>
       </section>
 
