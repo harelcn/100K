@@ -95,7 +95,8 @@ export default async function Dashboard() {
           <p className="text-xs text-zinc-500 mb-2">כולל סגירות</p>
           <p className="text-2xl">{fmt(d.withClosings)}</p>
           <p className="text-xs text-zinc-600 mt-2">
-            {d.unpaidClosings.length} סגירות לא שולמו
+            {d.unpaidClosings.filter((c) => !c.isPartial).length} לא שולמו
+            {d.unpaidClosings.some((c) => c.isPartial) && ` | ${d.unpaidClosings.filter((c) => c.isPartial).length} שולמו חלקית`}
           </p>
         </div>
       </section>
@@ -106,7 +107,10 @@ export default async function Dashboard() {
           <p className="text-xs text-zinc-500 mb-3">סגירות פתוחות</p>
           {d.unpaidClosings.map((c, i) => (
             <div key={i} className="flex justify-between items-center text-sm">
-              <span className="text-zinc-300">{c.name}</span>
+              <span className="text-zinc-300">
+                {c.name}
+                {c.isPartial && <span className="text-zinc-500 text-xs mr-1"> (נשאר)</span>}
+              </span>
               <span className="text-white">{fmt(c.amount)}</span>
             </div>
           ))}

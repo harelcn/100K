@@ -27,6 +27,7 @@ interface PaymentRow {
 interface ClosingRow {
   amount: number;
   name: string;
+  isPartial?: boolean;
 }
 
 interface ClosingDateRow {
@@ -93,14 +94,31 @@ async function fetchAllClosingsFromDate(startDate: string): Promise<ClosingDateR
 }
 
 async function fetchUnpaidClosings(): Promise<ClosingRow[]> {
-  const rows = await queryAll(DB_IDS.CLOSINGS, {
-    property: "תשלום",
-    status: { equals: "לא שולם" },
-  });
-  return rows.map((r) => ({
+  const [unpaidRows, partialRows] = await Promise.all([
+    queryAll(DB_IDS.CLOSINGS, {
+      property: "תשלום",
+      status: { equals: "לא שולם" },
+    }),
+    queryAll(DB_IDS.CLOSINGS, {
+      property: "תשלום",
+      status: { equals: "שולם חלקית" },
+    }),
+  ]);
+
+  const unpaid: ClosingRow[] = unpaidRows.map((r) => ({
     amount: r.properties["סכום שנסגר"]?.number ?? 0,
     name: r.properties["Name"]?.title?.[0]?.plain_text ?? "",
   }));
+
+  const partial: ClosingRow[] = partialRows
+    .map((r) => ({
+      amount: r.properties["כמה נשאר"]?.formula?.number ?? 0,
+      name: r.properties["Name"]?.title?.[0]?.plain_text ?? "",
+      isPartial: true,
+    }))
+    .filter((r) => r.amount > 0);
+
+  return [...unpaid, ...partial];
 }
 
 function calcRollover(allBudgetExpenses: ExpenseRow[], currentMonthStart: Date): number {
