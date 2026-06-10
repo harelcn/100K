@@ -111,11 +111,15 @@ async function fetchUnpaidClosings(): Promise<ClosingRow[]> {
   }));
 
   const partial: ClosingRow[] = partialRows
-    .map((r) => ({
-      amount: r.properties["כמה נשאר"]?.formula?.number ?? 0,
-      name: r.properties["Name"]?.title?.[0]?.plain_text ?? "",
-      isPartial: true,
-    }))
+    .map((r) => {
+      const total = r.properties["סכום שנסגר"]?.number ?? 0;
+      const paid = r.properties['סה"כ שולם']?.rollup?.number ?? 0;
+      return {
+        amount: total - paid,
+        name: r.properties["Name"]?.title?.[0]?.plain_text ?? "",
+        isPartial: true,
+      };
+    })
     .filter((r) => r.amount > 0);
 
   return [...unpaid, ...partial];
